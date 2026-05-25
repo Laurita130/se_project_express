@@ -1,14 +1,14 @@
 const ClothingItem = require("../models/clothingItem");
 
 const createItem = (req, res) => {
-    console.log(req)
-    console.log(req.body)
+    console.log(req);
+    console.log(req.body);
 
-  const { name, imageURL, weather } = req.body;
+  const { name, imageUrl, weather } = req.body;
 
-  ClothingItem.create({ name, imageURL, weather })
+  ClothingItem.create({ name, imageUrl, weather })
     .then((item) => {
-        console.log(item)
+        console.log(item);
       res.send({ data: item });
     })
     .catch((e) => {
@@ -22,17 +22,19 @@ const getItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch((e) => {
       res.status(500).send({message: "Error from  getItems", e })
-      
+      console.error(e);
     });
 };
 
 const updateItem = (req, res) => {
   const { itemId } = req.params;
-  const {imageURL } = req.body;
+  const {imageUrl } = req.body;
 
-  ClothingItem.findByIdAndUpdate(itemId,{$set: {imageURL}}).orFail().then((item) => res.status(200).send({data:item}))
+  ClothingItem.findByIdAndUpdate(itemId,{$set: {imageUrl}}).orFail().then((item) => res.status(200).send({data:item}))
     .catch((e) => {
-        res.status(500).send({message: "Error from  updateItem", e })})
+        res.status(500).send({message: "Error from  updateItem", e })
+        console.error(e);
+    });
 };
 
 const deleteItem = (req, res) => {
@@ -41,7 +43,9 @@ const deleteItem = (req, res) => {
   console.log(itemId);
   ClothingItem.findByIdAndDelete(itemId).orFail().then((item) => res.status(204).send({}))
     .catch((e) => {
-        res.status(500).send({message: "Error from  deleteItem", e })})
+        res.status(500).send({message: "Error from  deleteItem", e })
+        console.error(e);
+    });
 };
 
 
