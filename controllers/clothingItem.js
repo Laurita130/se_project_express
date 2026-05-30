@@ -1,18 +1,19 @@
 const ClothingItem = require("../models/clothingItem");
+const { BAD_REQUEST,NOT_FOUND,INTERNAL_SERVER_ERROR } = require("../utils/errors");
 
 const createItem = (req, res) => {
-    console.log(req);
-    console.log(req.body);
+  console.log(req);
+  console.log(req.body);
 
   const { name, imageUrl, weather } = req.body;
 
   ClothingItem.create({ name, imageUrl, weather })
     .then((item) => {
-        console.log(item);
-      res.send({ data: item });
+      console.log(item);
+      res.status(201).send({ data: item });
     })
     .catch((e) => {
-      res.status(500).send({ message: 'Error creating item' });
+      res.status(BAD_REQUEST).send({ message: "Error creating item" });
       console.error(e);
     });
 };
@@ -21,19 +22,33 @@ const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      res.status(500).send({message: "Error from  getItems", e })
+      res.status(NOT_FOUND).send({ message: "Error from  getItems", e });
       console.error(e);
     });
 };
 
-const updateItem = (req, res) => {
+const updateItem = (req, res, method) => {
   const { itemId } = req.params;
-  const {imageUrl } = req.body;
+    const userId = req.user._id;
 
-  ClothingItem.findByIdAndUpdate(itemId,{$set: {imageUrl}}).orFail().then((item) => res.status(200).send({data:item}))
+  ClothingItem.findByIdAndUpdate(itemId, { [method]: { likes: userId } }, { new: true })
+    .orFail(() => {
+      const error = new Error("Item not found");
+      error.statusCode = NOT_FOUND;
+      throw error;
+    })
+    .then((item) => res.send({ data: item }))
     .catch((e) => {
-        res.status(500).send({message: "Error from  updateItem", e })
-        console.error(e);
+       if (e.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid Item ID" });
+      }
+      else if (e.statusCode === NOT_FOUND) {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+     else {
+        res.status(INTERNAL_SERVER_ERROR).send({ message: "Error from  updateItem", e });
+      }
+      console.error(e);
     });
 };
 
@@ -41,12 +56,23 @@ const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
   console.log(itemId);
-  ClothingItem.findByIdAndDelete(itemId).orFail().then((item) => res.status(204).send({}))
+  ClothingItem.findByIdAndDelete(itemId)
+    .orFail()
+    .then((item) => res.status(204).send({}))
     .catch((e) => {
-        res.status(500).send({message: "Error from  deleteItem", e })
-        console.error(e);
+      if (e.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid Request" });
+      }
+      else if (e.statusCode === NOT_FOUND) {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+     else {
+        res.status(INTERNAL_SERVER_ERROR).send({ message: "Error from  deleteItem", e });
+      }
+      console.error(e);
     });
 };
+const likeClothingItem = (req, res) => updateItem(req, res,"$addToSet");
+const dislikeClothingItem = (req, res) => updateItem(req, res,"$pull");
 
-
-module.exports = { createItem, getItems, updateItem, deleteItem };
+module.exports = { createItem, getItems, deleteItem, likeClothingItem, dislikeClothingItem };
