@@ -7,3 +7,10 @@ The back-end project is focused on creating a server for the WTWR application. Y
 
 ### Testing
 Before committing your code, make sure you edit the file `sprint.txt` in the root folder. The file `sprint.txt` should contain the number of the sprint you're currently working on. For ex. 12
+
+
+yes.
+
+# My First Backend Project
+
+Hi, my name is Laura, and this is my first backend project. This project is a simple backend application built using Node.js, Express.js, MongoDB, and Mongoose. It includes a Mongoose connection to connect to the database, a User Schema to define user data, and User Controllers to manage user-related operations. Through this project, I learned the basics of backend development, database integration, and handling user data.

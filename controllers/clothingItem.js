@@ -12,17 +12,21 @@ const createItem = (req, res) => {
       console.log(item);
       res.status(201).send({ data: item });
     })
-    .catch((e) => {
-      res.status(BAD_REQUEST).send({ message: "Error creating item" });
-      console.error(e);
-    });
+.catch((e) => {
+  if (e.name === "ValidationError") {
+    return res.status(BAD_REQUEST).send({ message: "Invalid data provided" });
+  }
+  return res.status(INTERNAL_SERVER_ERROR).send({ message: "Internal server error" });
+});
+
+
 };
 
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      res.status(NOT_FOUND).send({ message: "Error from  getItems", e });
+      res.status(INTERNAL_SERVER_ERROR).send({ message: "Internal server error" });
       console.error(e);
     });
 };
