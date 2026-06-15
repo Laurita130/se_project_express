@@ -7,10 +7,6 @@ const {
   updateProfile,
 } = require("../controllers/users");
 
-router.post("/", createUser);
-
-router.get("/", getUsers);
-
 router.get("/me", getCurrentUser);
 
 router.patch("/me", updateProfile);

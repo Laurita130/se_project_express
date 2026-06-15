@@ -5,6 +5,8 @@ const {
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
   CONFLICT,
+  FORBIDDEN,
+  UNAUTHORIZED,
 } = require("../utils/errors");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils/config");
@@ -14,7 +16,9 @@ const getUsers = (req, res) => {
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "An error has occurred on the server" });
     });
 };
 
@@ -45,6 +49,11 @@ const createUser = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(BAD_REQUEST).send({
+      message: "Email and password are required",
+    });
+  }
 
   User.findUserByCredentials(email, password)
     .then((user) => {
@@ -55,7 +64,7 @@ const login = (req, res) => {
       res.send({ token });
     })
     .catch(() => {
-      res.status(401).send({
+      res.status(UNAUTHORIZED).send({
         message: "Incorrect email or password",
       });
     });

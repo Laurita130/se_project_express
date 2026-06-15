@@ -59,7 +59,7 @@ const updateItem = (req, res, method) => {
       }
       return res
         .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Error from  updateItem", e });
+        .send({ message: "Error from  updateItem" });
     });
 };
 
@@ -69,7 +69,7 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== req.user._id) {
-        return res.status(403).send({
+        return res.status(FORBIDDEN).send({
           message: "Forbidden",
         });
       }
