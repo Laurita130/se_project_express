@@ -26,7 +26,7 @@ const createItem = (req, res) => {
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send(items))
+    .then((items) => res.status(200).send({ data: items }))
     .catch((e) => {
       res
         .status(INTERNAL_SERVER_ERROR)
@@ -49,7 +49,8 @@ const updateItem = (req, res, method) => {
       error.statusCode = NOT_FOUND;
       throw error;
     })
-    .then((item) => res.send({ data: item }))
+    .then(() => ClothingItem.findByIdAndDelete(itemId))
+    .then((item) => res.status(200).send({ item }))
     .catch((e) => {
       if (e.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid Item ID" });
@@ -65,6 +66,7 @@ const updateItem = (req, res, method) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+
   ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
@@ -73,20 +75,33 @@ const deleteItem = (req, res) => {
           message: "Forbidden",
         });
       }
-      return res.status(200).send({ item });
+
       return ClothingItem.findByIdAndDelete(itemId);
+    })
+    .then((item) => {
+      if (item) {
+        return res.status(200).send({ item });
+      }
+
+      return null;
     })
     .catch((e) => {
       if (e.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid Request" });
-      }
-      if (e.statusCode === NOT_FOUND) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
+        return res.status(BAD_REQUEST).send({
+          message: "Invalid Request",
+        });
       }
 
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Error from  deleteItem", e });
+      if (e.statusCode === NOT_FOUND) {
+        return res.status(NOT_FOUND).send({
+          message: "Item not found",
+        });
+      }
+
+      return res.status(INTERNAL_SERVER_ERROR).send({
+        message: "Error from deleteItem",
+        e,
+      });
     });
 };
 const likeClothingItem = (req, res) => updateItem(req, res, "$addToSet");
