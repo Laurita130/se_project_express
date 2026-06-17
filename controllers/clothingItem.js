@@ -71,19 +71,12 @@ const deleteItem = (req, res) => {
     .orFail()
     .then((item) => {
       if (item.owner.toString() !== req.user._id) {
-        return res.status(FORBIDDEN).send({
-          message: "Forbidden",
-        });
+        return res.status(FORBIDDEN).send({ message: "Forbidden" });
       }
 
-      return ClothingItem.findByIdAndDelete(itemId);
-    })
-    .then((item) => {
-      if (item) {
-        return res.status(200).send({ item });
-      }
-
-      return null;
+      return ClothingItem.findByIdAndDelete(itemId).then(() =>
+        res.status(200).send({ item })
+      );
     })
     .catch((e) => {
       if (e.name === "CastError") {
