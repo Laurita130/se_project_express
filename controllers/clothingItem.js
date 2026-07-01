@@ -39,28 +39,35 @@ const updateItem = (req, res, method) => {
   const { itemId } = req.params;
   const userId = req.user._id;
 
-  ClothingItem.findByIdAndUpdate(
-    itemId,
-    { [method]: { likes: userId } },
-    { new: true }
-  )
+ClothingItem.findByIdAndUpdate(
+  itemId,
+  { [method]: { likes: userId } },
+  {
+    new: true,
+  }
+)
     .orFail(() => {
       const error = new Error("Item not found");
       error.statusCode = NOT_FOUND;
       throw error;
     })
-    .then(() => ClothingItem.findByIdAndDelete(itemId))
-    .then((item) => res.status(200).send({ item }))
+    .then((item) => res.status(200).send(item))
     .catch((e) => {
       if (e.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid Item ID" });
+        return res.status(BAD_REQUEST).send({
+          message: "Invalid Item ID",
+        });
       }
+
       if (e.statusCode === NOT_FOUND) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
+        return res.status(NOT_FOUND).send({
+          message: "Item not found",
+        });
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Error from  updateItem" });
+
+      return res.status(INTERNAL_SERVER_ERROR).send({
+        message: "Error updating item",
+      });
     });
 };
 
