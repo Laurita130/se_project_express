@@ -11,7 +11,7 @@ const createItem = (req, res) => {
 
   ClothingItem.create({ name, imageUrl, weather, owner: req.user._id })
     .then((item) => {
-      res.status(201).send({ data: item });
+      res.status(200).send({ data: item });
     })
     .catch((e) => {
       console.error(e);
@@ -26,7 +26,9 @@ const createItem = (req, res) => {
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(200).send({ data: items }))
+    .then((item) => {
+      res.status(200).send({ data: item });
+    })
     .catch((e) => {
       res
         .status(INTERNAL_SERVER_ERROR)
@@ -39,19 +41,21 @@ const updateItem = (req, res, method) => {
   const { itemId } = req.params;
   const userId = req.user._id;
 
-ClothingItem.findByIdAndUpdate(
-  itemId,
-  { [method]: { likes: userId } },
-  {
-    new: true,
-  }
-)
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { [method]: { likes: userId } },
+    {
+      new: true,
+    }
+  )
     .orFail(() => {
       const error = new Error("Item not found");
       error.statusCode = NOT_FOUND;
       throw error;
     })
-    .then((item) => res.status(200).send(item))
+    .then((item) => {
+      res.status(200).send({ data: item });
+    })
     .catch((e) => {
       if (e.name === "CastError") {
         return res.status(BAD_REQUEST).send({
@@ -75,15 +79,19 @@ const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
   ClothingItem.findById(itemId)
-    .orFail()
+    .orFail(() => {
+      const error = new Error("Item not found");
+      error.statusCode = NOT_FOUND;
+      throw error;
+    })
     .then((item) => {
       if (item.owner.toString() !== req.user._id) {
         return res.status(FORBIDDEN).send({ message: "Forbidden" });
       }
 
-      return ClothingItem.findByIdAndDelete(itemId).then(() =>
-        res.status(200).send({ item })
-      );
+      return ClothingItem.findByIdAndDelete(itemId).then((item) => {
+        res.status(200).send({ data: item });
+      });
     })
     .catch((e) => {
       if (e.name === "CastError") {
@@ -99,8 +107,7 @@ const deleteItem = (req, res) => {
       }
 
       return res.status(INTERNAL_SERVER_ERROR).send({
-        message: "Error from deleteItem",
-        e,
+        message: "Internal server error",
       });
     });
 };

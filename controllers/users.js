@@ -10,43 +10,54 @@ const {
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-const getUsers = (req, res) => User.find({})
-    .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      console.error(err);
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "An error has occurred on the server" });
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    return res.status(200).send(users);
+  } catch (err) {
+    console.error(err);
+    return res.status(INTERNAL_SERVER_ERROR).send({
+      message: "An error has occurred on the server",
     });
+  }
+};
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({ name, avatar, email, password: hash }))
-    .then((user) => {
-      const userObject = user.toObject();
-      delete userObject.password;
-      return res.status(201).send(userObject);
-    })
-    .catch((err) => {
-      console.error(err);
+  try {
+    const hash = await bcrypt.hash(password, 10);
 
-      if (err.code === 11000) {
-        return res.status(CONFLICT).send({
-          message: "A user with that email already exists",
-        });
-      }
-
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message: err.message,
-        });
-      }
-
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    const user = await User.create({
+      name,
+      avatar,
+      email,
+      password: hash,
     });
+
+    const userObject = user.toObject();
+    delete userObject.password;
+
+    return res.status(201).send(userObject);
+  } catch (err) {
+    console.error(err);
+
+    if (err.code === 11000) {
+      return res.status(CONFLICT).send({
+        message: "A user with that email already exists",
+      });
+    }
+
+    if (err.name === "ValidationError") {
+      return res.status(BAD_REQUEST).send({
+        message: err.message,
+      });
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({
+      message: "Internal server error",
+    });
+  }
 };
 
 const login = (req, res) => {
@@ -73,80 +84,95 @@ const login = (req, res) => {
     );
 };
 
-const getUser = (req, res) => {
+const getUser = async (req, res) => {
   const { userId } = req.params;
 
-  return User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
+  try {
+    const user = await User.findById(userId).orFail();
 
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
+    return res.status(200).send(user);
+  } catch (err) {
+    console.error(err);
 
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(NOT_FOUND).send({
+        message: "User not found",
+      });
+    }
 
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    if (err.name === "CastError") {
+      return res.status(BAD_REQUEST).send({
+        message: "Invalid user ID",
+      });
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({
+      message: "Internal server error",
     });
+  }
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = async (req, res) => {
   const userId = req.user._id;
 
-  return User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
+  try {
+    const user = await User.findById(userId).orFail();
 
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
+    return res.status(200).send(user);
+  } catch (err) {
+    console.error(err);
 
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user ID" });
-      }
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(NOT_FOUND).send({
+        message: "User not found",
+      });
+    }
 
-      return res.status(INTERNAL_SERVER_ERROR).send({ message: err.message });
+    if (err.name === "CastError") {
+      return res.status(BAD_REQUEST).send({
+        message: "Invalid user ID",
+      });
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({
+      message: "Internal server error",
     });
+  }
 };
 
-const updateProfile = (req, res) => {
+const updateProfile = async (req, res) => {
   const { name, avatar } = req.body;
 
-  return User.findByIdAndUpdate(
-    req.user._id,
-    { name, avatar },
-    {
-      new: true,
-      runValidators: true,
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, avatar },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).orFail();
+
+    return res.status(200).send(user);
+  } catch (err) {
+    console.error(err);
+
+    if (err.name === "DocumentNotFoundError") {
+      return res.status(NOT_FOUND).send({
+        message: "User not found",
+      });
     }
-  )
-    .orFail()
-    .then((user) => res.status(200).send(user))
-    .catch((err) => {
-      console.error(err);
 
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({
-          message: "User not found",
-        });
-      }
-
-      if (err.name === "ValidationError") {
-        return res.status(BAD_REQUEST).send({
-          message: err.message,
-        });
-      }
-
-      return res.status(INTERNAL_SERVER_ERROR).send({
+    if (err.name === "ValidationError") {
+      return res.status(BAD_REQUEST).send({
         message: err.message,
       });
+    }
+
+    return res.status(INTERNAL_SERVER_ERROR).send({
+      message: "Internal server error",
     });
+  }
 };
 
 module.exports = {

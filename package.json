@@ -1,7 +1,7 @@
 {
-  "name": "0.1.0",
+  "name": "se_project_express",
   "version": "0.1.0",
-  "description": "The back-end project is focused on creating a server for the WTWR application. You’ll gain a deeper understanding of how to work with databases, set up security and testing, and deploy web applications on a remote machine. The eventual goal is to create a server with an API and user authorization.\r ## Running the Project\r `npm run start` — to launch the server",
+  "description": "Backend API for the WTWR application built with Express, MongoDB, JWT authentication, and Mongoose.",
   "homepage": "https://github.com/Laurita130/se_project_express#readme",
   "bugs": {
     "url": "https://github.com/Laurita130/se_project_express/issues"
@@ -11,11 +11,11 @@
     "url": "git+https://github.com/Laurita130/se_project_express.git"
   },
   "license": "ISC",
-  "author": "laura lysaght",
+  "author": "Laura Lysaght",
   "type": "commonjs",
   "main": "app.js",
   "scripts": {
-    "lint": "npx eslint .",
+    "lint": "eslint .",
     "start": "node app.js",
     "dev": "nodemon app.js"
   },

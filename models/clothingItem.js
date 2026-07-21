@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const user = require("./user");
 
-const clothingItem = new mongoose.Schema({
+const clothingItemSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, "Name is required"],
@@ -18,13 +17,13 @@ const clothingItem = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (v) => validator.isURL(v),
-      message: "Link is not Valid",
+      validator: (value) => validator.isURL(value),
+      message: "Link is not valid",
     },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: user,
+    ref: "user",
     required: true,
   },
   createdAt: {
@@ -32,9 +31,14 @@ const clothingItem = new mongoose.Schema({
     default: Date.now,
   },
   likes: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+    type: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user",
+      },
+    ],
     default: [],
   },
 });
 
-module.exports = mongoose.model("clothingItem", clothingItem);
+module.exports = mongoose.model("clothingItem", clothingItemSchema);
