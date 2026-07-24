@@ -6,8 +6,13 @@ const { createUser, login } = require("../controllers/users");
 const auth = require("../middlewares/auth");
 const { NOT_FOUND } = require("../utils/errors");
 
-router.post("/signup", createUser);
-router.post("/signin", login);
+const {
+  validateSignup,
+  validateSignin,
+} = require("../middlewares/validation");
+
+router.post("/signup", validateSignup, createUser);
+router.post("/signin", validateSignin, login);
 
 router.use("/users", auth, userRouter);
 router.use("/items", clothingItemRouter);
